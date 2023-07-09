@@ -6,6 +6,10 @@
 #include <sys/socket.h>
 #include <errno.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <net/if.h>
+#include <poll.h>
+
 struct sockaddr_in addrSer;
 struct sockaddr_in addrCli;
 int sockSer = -1;
@@ -17,11 +21,13 @@ static void *sendLoop();
 static void *readLoop(){
     char recvbuf[256];
     
-    socklen_t addrlen = sizeof(struct sockaddr);
+    socklen_t addrlen =sizeof (struct sockaddr) ;
     int count =0;
     while(1){
+        //从sockSer中读取数据，并获取客户端地址，存放到client 中,addrlen需要被复制地址长度
         count = recvfrom(sockSer,recvbuf,256,0,(struct sockaddr *)&addrCli,&addrlen);
-        printf("receeve client: %s \n",recvbuf);
+        printf("recvfrom addrser port %d ,addr = %s\n",addrCli.sin_port,inet_ntoa (addrCli.sin_addr));
+        printf("receeve client: %s  length=%d\n",recvbuf,count);
         if (count < 0){
             printf("error :%s\n",strerror(errno));
             break;
@@ -39,7 +45,9 @@ static void *sendLoop(){
     
     socklen_t addrlen = sizeof(struct sockaddr);
     while(1){
+        //发送数据到客户端，addrCli是对应客户端的地址， 这个地址在recvfrom时获取到，保存下来
         sendto(sockSer,sendbuf,strlen(sendbuf),MSG_DONTWAIT,(struct sockaddr*)&addrCli,addrlen);
+        printf("send addrser port %d ,addr = %s\n",addrCli.sin_port,inet_ntoa (addrCli.sin_addr));
         sleep(5);// send data per 5 seconds
     }
     
@@ -69,6 +77,12 @@ int main(){
     
     pthread_join(serverReadThread,NULL);
     pthread_join(serverWriteThread,NULL);
+    
+    
+    
+    
+    
+    
 #if 0
     
     //测试收发
@@ -77,7 +91,7 @@ int main(){
     struct sockaddr_in addrCli;
     while(1){
         recvfrom(sockSer,recvbuf,256,0,(struct sockaddr *)&addrCli,&addrlen);
-        printf("client: %s \n",recvbuf);
+        printf("client: %s \n",addrCli. ,recvbuf);
         
         printf("input->");
         scanf("%s",sendbuf);

@@ -16,10 +16,11 @@ static void *sendLoop();
 
 static void *readLoop(){
     char recvbuf[256];
-    socklen_t addrlen = sizeof(struct sockaddr);
+    socklen_t addrlen =sizeof(struct sockaddr) ;
     int count =0;
     while(1){
         count = recvfrom(sockSer,recvbuf,256,0,(struct sockaddr *)&addrSer,&addrlen);
+        printf("recvfrom addrser port %d ,addr = %s\n",addrSer.sin_port,inet_ntoa (addrSer.sin_addr));
         printf("receeve server: %s \n",recvbuf);
         if (count < 0){
             printf("error :%s\n",strerror(errno));
@@ -37,6 +38,7 @@ static void *sendLoop(){
     while(1){
         
         sendto(sockSer,sendbuf,strlen(sendbuf),MSG_DONTWAIT,(struct sockaddr*)&addrSer,addrlen);
+        printf("sendto addrser port %d ,addr = %s\n",addrSer.sin_port,inet_ntoa (addrSer.sin_addr));
         sleep(5);// send data per 5 seconds
     }
 }
@@ -64,7 +66,6 @@ int main(){
         printf("craete thread failed\n");
     }
     
-    pthread_create(&clientReadThread,NULL,readLoop,NULL);
     pthread_create(&clientWriteThread,NULL,sendLoop,NULL);
     
     pthread_join(clientReadThread,NULL);
